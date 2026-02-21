@@ -2,13 +2,14 @@ package main
 
 import (
 	"errors"
-	"github.com/unix-streamdeck/api"
-	"github.com/unix-streamdeck/streamdeckd/streamdeckd"
-	"golang.org/x/sync/semaphore"
 	"image"
 	"log"
 	"net/http"
 	"time"
+
+	"github.com/unix-streamdeck/api/v2"
+	"github.com/unix-streamdeck/streamdeckd/streamdeckd"
+	"golang.org/x/sync/semaphore"
 )
 
 type CCTVIconHandler struct {

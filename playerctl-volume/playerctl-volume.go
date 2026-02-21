@@ -2,17 +2,21 @@ package main
 
 import (
 	"context"
-	"github.com/Endg4meZer0/go-mpris"
-	"github.com/godbus/dbus/v5"
-	"github.com/unix-streamdeck/api"
-	"github.com/unix-streamdeck/streamdeckd/streamdeckd"
-	"golang.org/x/sync/semaphore"
+	"errors"
 	"image"
 	"log"
 	"math"
+	"net/http"
 	"os"
+	"regexp"
 	"strconv"
 	"time"
+
+	"github.com/Endg4meZer0/go-mpris"
+	"github.com/godbus/dbus/v5"
+	"github.com/unix-streamdeck/api/v2"
+	"github.com/unix-streamdeck/streamdeckd/streamdeckd"
+	"golang.org/x/sync/semaphore"
 )
 
 type VolumeLcdHandler struct {
@@ -102,6 +106,10 @@ func (v *VolumeLcdHandler) Run(knob api.KnobConfigV3, info api.StreamDeckInfoV1,
 						break
 					}
 				} else {
+					_, err := pl.GetVolume()
+					if err != nil {
+						continue
+					}
 					status, err := pl.GetPlaybackStatus()
 					if err != nil {
 						log.Println(err)
@@ -127,9 +135,17 @@ func (v *VolumeLcdHandler) Run(knob api.KnobConfigV3, info api.StreamDeckInfoV1,
 			var img image.Image
 			img = v.Buff
 			if img == nil {
-				log.Println("Creating empty image of", player.GetShortName())
-				img = image.NewNRGBA(image.Rect(0, 0, info.LcdWidth, info.LcdHeight))
-				img, err = api.DrawText(img, player.GetShortName(), 0, "MIDDLE")
+				img, err = v.FindImage(player)
+				if err != nil {
+					log.Println(err)
+				}
+				if img == nil {
+					log.Println("Creating empty image of", player.GetShortName())
+					img = image.NewNRGBA(image.Rect(0, 0, info.LcdWidth, info.LcdHeight))
+					img, err = api.DrawText(img, player.GetShortName(), 0, "MIDDLE")
+				} else {
+					img = api.ResizeImageWH(img, info.LcdWidth, info.LcdHeight)
+				}
 			}
 			imgParsed, err := api.DrawText(img, text, 24, "BOTTOM")
 			if err != nil {
@@ -140,6 +156,120 @@ func (v *VolumeLcdHandler) Run(knob api.KnobConfigV3, info api.StreamDeckInfoV1,
 			time.Sleep(50 * time.Millisecond)
 		}
 	}
+}
+
+func (v *VolumeLcdHandler) FindImage(player *mpris.Player) (image.Image, error) {
+	metadata, err := player.GetMetadata()
+	if err == nil && metadata != nil {
+		artUrl, err := metadata.ArtURL()
+		if err == nil && artUrl != "" {
+			img, err := ExtractImage(artUrl)
+			if err != nil {
+				log.Println(err)
+				err = nil
+			}
+			if img != nil {
+				return img, nil
+			}
+		}
+		if err != nil {
+			log.Println(err)
+		}
+		err = nil
+	}
+	if err != nil {
+		log.Println(err)
+	}
+	err = nil
+	app, err := player.GetIdentity()
+	if err != nil {
+		log.Println(err)
+		return nil, errors.New("couldn't find image")
+	}
+
+	if app == "" {
+		return nil, errors.New("couldn't find image")
+	}
+
+	//apps := LinuxApps.GetApps()
+	//
+	//var icon string
+	//for _, desktopEntry := range apps {
+	//	if desktopEntry.Name == app {
+	//		icon = desktopEntry.IconName
+	//		break
+	//	}
+	//}
+	//if icon == "" {
+	//	return nil, errors.New("couldn't find image")
+	//}
+	//
+	//img, err := ExtractImage(icon)
+	//if err != nil {
+	//	log.Println(err)
+	//	return nil, errors.New("couldn't find image")
+	//}
+	//if img != nil {
+	//	return img, nil
+	//}
+
+	return nil, errors.New("couldn't find image")
+}
+
+func ExtractImage(icon string) (image.Image, error) {
+	match, err := regexp.MatchString(`(https?://)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&/=]*)`, icon)
+	if match {
+		return getHttpImage(icon)
+	}
+	if err != nil {
+		log.Println(err)
+		err = nil
+	}
+	match, err = regexp.MatchString(`(/)+[a-zA-Z0-9\\\-_/ .]*\.+[a-z0-9A-Z]+`, icon)
+	if match {
+		return loadImage(icon)
+	}
+	if err != nil {
+		log.Println(err)
+		return nil, err
+	}
+	return nil, errors.New("couldn't find image")
+}
+
+func getHttpImage(url string) (image.Image, error) {
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return nil, err
+	}
+	client := &http.Client{}
+	response, err := client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	if response.StatusCode != 200 {
+		return nil, errors.New("Couldn't get Image from URL")
+	}
+	defer response.Body.Close()
+	img, _, err := image.Decode(response.Body)
+	if err != nil {
+		return nil, err
+	}
+	return img, nil
+}
+
+func loadImage(path string) (image.Image, error) {
+	f, err := os.Open(path)
+	if err != nil {
+		return nil, err
+	}
+	defer f.Close()
+
+	img, _, err := image.Decode(f)
+	if err != nil {
+		return nil, err
+	}
+
+	return img, nil
 }
 
 type VolumeKnobOrTouchHandler struct {
@@ -162,6 +292,11 @@ func (v *VolumeKnobOrTouchHandler) Input(knob api.KnobConfigV3, info api.StreamD
 				break
 			}
 		} else {
+			_, err := pl.GetVolume()
+			if err != nil {
+				log.Println("Caught the thing")
+				continue
+			}
 			status, err := pl.GetPlaybackStatus()
 			if err != nil {
 				log.Println(err)
