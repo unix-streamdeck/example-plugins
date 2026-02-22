@@ -56,7 +56,7 @@ type profile struct {
 }
 
 type port struct {
-	Card              *Card
+	Card              *Card `json:"-"`
 	Name, Description string
 	Pririty           uint32
 	Available         uint32

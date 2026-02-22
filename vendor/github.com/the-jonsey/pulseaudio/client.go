@@ -49,7 +49,7 @@ type Client struct {
 	conn        net.Conn
 	clientIndex int
 	packets     chan packet
-	updates     chan struct{}
+	Events      chan SubscriptionEvent
 	connected   bool
 }
 
@@ -71,7 +71,7 @@ func NewClient(addressArr ...string) (*Client, error) {
 	c := &Client{
 		conn:      conn,
 		packets:   make(chan packet),
-		updates:   make(chan struct{}, 1),
+		Events:    make(chan SubscriptionEvent),
 		connected: true,
 	}
 
@@ -174,8 +174,21 @@ loop:
 				panic(err)
 			}
 			if rsp == commandSubscribeEvent && tag == 0xffffffff {
+				var s SubscriptionEvent
+				data := make([]byte, 10)
+				_, err := buff.Read(data)
+				if err != nil {
+					log.Println(err)
+					panic(err)
+				}
+				raw := data[4]
+				index := binary.BigEndian.Uint32(data[6:10])
+
+				s.EventFacility = SubscriptionEventFacility(raw & 0x0F).String()
+				s.EventType = SubscriptionEventType(raw & 0x30).String()
+				s.Index = &index
 				select {
-				case c.updates <- struct{}{}:
+				case c.Events <- s:
 				default:
 				}
 				continue
@@ -396,7 +409,7 @@ func cookiePath() (string, error) {
 
 type Device interface {
 	SetVolume(volume float32) error
-	SetMute (b bool) error
+	SetMute(b bool) error
 	ToggleMute() error
 	IsMute() bool
 	GetVolume() float32

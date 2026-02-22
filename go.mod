@@ -5,7 +5,7 @@ go 1.25.1
 require (
 	github.com/Endg4meZer0/go-mpris v1.0.5
 	github.com/godbus/dbus/v5 v5.0.4-0.20200513180336-df5ef3eb7cca
-	github.com/the-jonsey/pulseaudio v0.0.1
+	github.com/the-jonsey/pulseaudio v0.0.2-0.20260222211608-58a869b098fe
 	github.com/unix-streamdeck/api/v2 v2.0.1-0.20250915204217-05040f967038
 	github.com/unix-streamdeck/streamdeckd v1.0.3-0.20260218203403-61f7659db6c3
 	golang.org/x/sync v0.1.0
@@ -26,8 +26,9 @@ require (
 	golang.org/x/image v0.0.0-20201208152932-35266b937fa6 // indirect
 )
 
-replace github.com/the-jonsey/pulseaudio v0.0.1 => ../pulseaudio
-
-replace github.com/unix-streamdeck/streamdeckd => ../streamdeckd
+//
+//replace github.com/the-jonsey/pulseaudio v0.0.1 => ../pulseaudio
+//
+//replace github.com/unix-streamdeck/streamdeckd => ../streamdeckd
 
 //replace github.com/Endg4meZer0/go-mpris => ../go-mpris
