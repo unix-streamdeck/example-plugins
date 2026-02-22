@@ -112,18 +112,18 @@ func (v *VolumeLcdHandler) Run(knob api.KnobConfigV3, info api.StreamDeckInfoV1,
 	if err != nil {
 		return
 	}
-	var subscriptionMask pulseaudio.DevType
+	var subscriptionMask pulseaudio.SubscriptionMask
 	if v.DevType == "sink" {
-		subscriptionMask = pulseaudio.SUBSCRIPTION_MASK_SINK
+		subscriptionMask = pulseaudio.SubscriptionMaskSink
 	} else if v.DevType == "source" {
-		subscriptionMask = pulseaudio.SUBSCRIPTION_MASK_SOURCE
+		subscriptionMask = pulseaudio.SubscriptionMaskSource
 	} else if v.DevType == "sink_input" {
-		subscriptionMask = pulseaudio.SUBSCRIPTION_MASK_SINK_INPUT
+		subscriptionMask = pulseaudio.SubscriptionMaskSinkInput
 	} else if v.DevType == "source_output" {
-		subscriptionMask = pulseaudio.SUBSCRIPTION_MASK_SINK_INPUT
+		subscriptionMask = pulseaudio.SubscriptionMaskSourceOutput
 	}
 	defer v.Lock.Release(1)
-	updates, err := v.client.UpdatesByType(subscriptionMask)
+	err = v.client.Subscribe(subscriptionMask)
 	if err != nil {
 		return
 	}
@@ -131,7 +131,7 @@ func (v *VolumeLcdHandler) Run(knob api.KnobConfigV3, info api.StreamDeckInfoV1,
 	if err != nil {
 		log.Println(err)
 	}
-	for range updates {
+	for range v.client.Events {
 		select {
 		case <-v.Quit:
 			return
