@@ -15,7 +15,6 @@ import (
 	"github.com/Endg4meZer0/go-mpris"
 	"github.com/godbus/dbus/v5"
 	"github.com/unix-streamdeck/api/v2"
-	"github.com/unix-streamdeck/streamdeckd/streamdeckd"
 	"golang.org/x/sync/semaphore"
 )
 
@@ -332,8 +331,8 @@ func (v *VolumeKnobOrTouchHandler) Input(knob api.KnobConfigV3, info api.StreamD
 		return
 	}
 }
-func GetModule() streamdeckd.Module {
-	return streamdeckd.Module{
+func GetModule() api.Module {
+	return api.Module{
 		NewLcd: func() api.LcdHandler {
 			client, err := dbus.SessionBus()
 			if err != nil {

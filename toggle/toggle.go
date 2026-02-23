@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/unix-streamdeck/api/v2"
-	"github.com/unix-streamdeck/streamdeckd/streamdeckd"
 	"golang.org/x/sync/semaphore"
 )
 
@@ -133,15 +132,29 @@ func (ToggleKeyHandler) Key(key api.KeyConfigV3, info api.StreamDeckInfoV1) {
 		index = "up_command"
 	}
 	command, ok := key.KeyHandlerFields[index]
+	commandString := command.(string)
 	if !ok {
 		return
 	}
-	streamdeckd.RunCommand(command.(string))
+	go func() {
+		cmd := exec.Command("/bin/sh", commandString)
+
+		if err := cmd.Start(); err != nil {
+			log.Println("There was a problem running ", commandString, ":", err)
+		} else {
+			pid := cmd.Process.Pid
+			err := cmd.Process.Release()
+			if err != nil {
+				log.Println(err)
+			}
+			log.Println(commandString, " has been started with pid", pid)
+		}
+	}()
 }
 
-func GetModule() streamdeckd.Module {
+func GetModule() api.Module {
 
-	return streamdeckd.Module{
+	return api.Module{
 		Name: "Toggle",
 		NewIcon: func() api.IconHandler {
 			return &ToggleIconHandler{Running: true, Lock: semaphore.NewWeighted(1), FirstLoop: true}

@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/unix-streamdeck/api/v2"
-	"github.com/unix-streamdeck/streamdeckd/streamdeckd"
 	"golang.org/x/sync/semaphore"
 )
 
@@ -87,9 +86,9 @@ func (CCTVKeyHandler) Key(key api.KeyConfigV3, info api.StreamDeckInfoV1) {
 	handler.updateIcon()
 }
 
-func GetModule() streamdeckd.Module {
+func GetModule() api.Module {
 
-	return streamdeckd.Module{
+	return api.Module{
 		Name:       "CCTV",
 		NewIcon:    func() api.IconHandler { return &CCTVIconHandler{Running: true, Lock: semaphore.NewWeighted(1)} },
 		IconFields: []api.Field{{Title: "URL", Name: "url", Type: "Text"}},

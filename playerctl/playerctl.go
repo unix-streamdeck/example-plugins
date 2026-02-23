@@ -8,7 +8,6 @@ import (
 	"github.com/Endg4meZer0/go-mpris"
 	"github.com/godbus/dbus/v5"
 	"github.com/unix-streamdeck/api/v2"
-	"github.com/unix-streamdeck/streamdeckd/streamdeckd"
 )
 
 type KeypressOperation string
@@ -121,9 +120,9 @@ func getNextLoopStatus(status mpris.LoopStatus) mpris.LoopStatus {
 	return "None"
 }
 
-func GetModule() streamdeckd.Module {
+func GetModule() api.Module {
 
-	return streamdeckd.Module{
+	return api.Module{
 		Name: "Playerctl",
 		NewKey: func() api.KeyHandler {
 			client, err := dbus.SessionBus()

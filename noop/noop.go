@@ -4,7 +4,6 @@ import (
 	"image"
 
 	"github.com/unix-streamdeck/api/v2"
-	"github.com/unix-streamdeck/streamdeckd/streamdeckd"
 )
 
 type NoOpIconHandler struct {
@@ -34,8 +33,8 @@ func (c NoOpIconHandler) Stop() {
 	c.Running = false
 }
 
-func GetModule() streamdeckd.Module {
-	return streamdeckd.Module{NewIcon: func() api.IconHandler {
+func GetModule() api.Module {
+	return api.Module{NewIcon: func() api.IconHandler {
 		return &NoOpIconHandler{Running: true}
 	}, Name: "NoOp"}
 }

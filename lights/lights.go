@@ -7,7 +7,6 @@ import (
 	"net/http"
 
 	"github.com/unix-streamdeck/api/v2"
-	"github.com/unix-streamdeck/streamdeckd/streamdeckd"
 )
 
 type LightsKeyHandler struct{}
@@ -51,9 +50,9 @@ func (LightsKeyHandler) Key(key api.KeyConfigV3, info api.StreamDeckInfoV1) {
 	defer resp.Body.Close()
 }
 
-func GetModule() streamdeckd.Module {
+func GetModule() api.Module {
 
-	return streamdeckd.Module{
+	return api.Module{
 		Name:      "Lights",
 		NewKey:    func() api.KeyHandler { return &LightsKeyHandler{} },
 		KeyFields: []api.Field{{Title: "Domain", Name: "domain", Type: "Text"}, {Title: "Service", Name: "service", Type: "Text"}, {Title: "Entity Id", Name: "entity_id", Type: "Text"}, {Title: "Api Key", Name: "api_key", Type: "Text"}, {Title: "Base Url", Name: "base_url", Type: "Text"}},

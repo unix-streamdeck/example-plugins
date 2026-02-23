@@ -11,7 +11,6 @@ import (
 
 	"github.com/the-jonsey/pulseaudio"
 	"github.com/unix-streamdeck/api/v2"
-	"github.com/unix-streamdeck/streamdeckd/streamdeckd"
 	"golang.org/x/sync/semaphore"
 )
 
@@ -394,8 +393,8 @@ func (v *VolumeKeyHandler) Key(key api.KeyConfigV3, info api.StreamDeckInfoV1) {
 
 }
 
-func GetModule() streamdeckd.Module {
-	return streamdeckd.Module{
+func GetModule() api.Module {
+	return api.Module{
 		NewLcd: func() api.LcdHandler {
 			client, err := pulseaudio.NewClient()
 			if err != nil {
