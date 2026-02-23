@@ -1,4 +1,4 @@
-# github.com/Endg4meZer0/go-mpris v1.0.5 => ../go-mpris
+# github.com/Endg4meZer0/go-mpris v1.0.5
 ## explicit; go 1.14
 github.com/Endg4meZer0/go-mpris
 # github.com/fogleman/gg v1.3.0
@@ -22,7 +22,7 @@ github.com/nfnt/resize
 # github.com/the-jonsey/pulseaudio v0.0.2-0.20260222211608-58a869b098fe
 ## explicit; go 1.19
 github.com/the-jonsey/pulseaudio
-# github.com/unix-streamdeck/api/v2 v2.0.1-0.20250915204217-05040f967038 => ../api
+# github.com/unix-streamdeck/api/v2 v2.0.1
 ## explicit; go 1.18
 github.com/unix-streamdeck/api/v2
 # golang.org/x/image v0.0.0-20201208152932-35266b937fa6
@@ -36,5 +36,3 @@ golang.org/x/image/math/fixed
 # golang.org/x/sync v0.1.0
 ## explicit
 golang.org/x/sync/semaphore
-# github.com/unix-streamdeck/api/v2 => ../api
-# github.com/Endg4meZer0/go-mpris => ../go-mpris
