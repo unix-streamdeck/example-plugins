@@ -53,8 +53,14 @@ func (LightsKeyHandler) Key(key api.KeyConfigV3, info api.StreamDeckInfoV1) {
 func GetModule() api.Module {
 
 	return api.Module{
-		Name:      "Lights",
-		NewKey:    func() api.KeyHandler { return &LightsKeyHandler{} },
-		KeyFields: []api.Field{{Title: "Domain", Name: "domain", Type: "Text"}, {Title: "Service", Name: "service", Type: "Text"}, {Title: "Entity Id", Name: "entity_id", Type: "Text"}, {Title: "Api Key", Name: "api_key", Type: "Text"}, {Title: "Base Url", Name: "base_url", Type: "Text"}},
+		Name:   "Lights",
+		NewKey: func() api.KeyHandler { return &LightsKeyHandler{} },
+		KeyFields: []api.Field{
+			{Title: "Domain", Name: "domain", Type: api.Text},
+			{Title: "Service", Name: "service", Type: api.Text},
+			{Title: "Entity Id", Name: "entity_id", Type: api.Text},
+			{Title: "Api Key", Name: "api_key", Type: api.Text},
+			{Title: "Base Url", Name: "base_url", Type: api.Text},
+		},
 	}
 }

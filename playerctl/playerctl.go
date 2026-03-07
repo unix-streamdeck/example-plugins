@@ -131,6 +131,9 @@ func GetModule() api.Module {
 			}
 			return &PlayerCtlKeyHandler{Client: client}
 		},
-		KeyFields: []api.Field{{Title: "Player Name", Name: "player_name", Type: "Text"}, {Title: "Operation", Name: "operation", Type: "Select", ListItems: slices.Collect(maps.Keys(operationsMap))}},
+		KeyFields: []api.Field{
+			{Title: "Player Name", Name: "player_name", Type: api.Text},
+			{Title: "Operation", Name: "operation", Type: api.Select, ListItems: slices.Collect(maps.Keys(operationsMap))},
+		},
 	}
 }

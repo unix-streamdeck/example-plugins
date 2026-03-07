@@ -141,12 +141,17 @@ func (v *VolumeLcdHandler) Run(knob api.KnobConfigV3, info api.StreamDeckInfoV1,
 				if img == nil {
 					log.Println("Creating empty image of", player.GetShortName())
 					img = image.NewNRGBA(image.Rect(0, 0, info.LcdWidth, info.LcdHeight))
-					img, err = api.DrawText(img, player.GetShortName(), 0, "MIDDLE")
+					img, err = api.DrawText(img, player.GetShortName(), api.DrawTextOptions{
+						VerticalAlignment: api.Center,
+					})
 				} else {
 					img = api.ResizeImageWH(img, info.LcdWidth, info.LcdHeight)
 				}
 			}
-			imgParsed, err := api.DrawText(img, text, 24, "BOTTOM")
+			imgParsed, err := api.DrawText(img, text, api.DrawTextOptions{
+				FontSize:          24,
+				VerticalAlignment: api.Bottom,
+			})
 			if err != nil {
 				log.Println(err)
 			} else {
@@ -340,7 +345,10 @@ func GetModule() api.Module {
 			}
 			return &VolumeLcdHandler{Running: true, Lock: semaphore.NewWeighted(1), FirstLoop: true, Client: client}
 		},
-		LcdFields: []api.Field{{Title: "Icon", Name: "icon", Type: "File", FileTypes: []string{".png", ".jpg", ".jpeg"}}, {Title: "Player Name", Name: "player_name", Type: "Text"}},
+		LcdFields: []api.Field{
+			{Title: "Icon", Name: "icon", Type: api.File, FileTypes: []string{".png", ".jpg", ".jpeg"}},
+			{Title: "Player Name", Name: "player_name", Type: api.Text},
+		},
 		NewKnobOrTouch: func() api.KnobOrTouchHandler {
 			client, err := dbus.SessionBus()
 			if err != nil {
@@ -348,7 +356,9 @@ func GetModule() api.Module {
 			}
 			return &VolumeKnobOrTouchHandler{Client: client}
 		},
-		KnobOrTouchFields: []api.Field{{Title: "Player Name", Name: "player_name", Type: "Text"}},
-		Name:              "PlayerCtlVolume",
+		KnobOrTouchFields: []api.Field{
+			{Title: "Player Name", Name: "player_name", Type: api.Text},
+		},
+		Name: "PlayerCtlVolume",
 	}
 }

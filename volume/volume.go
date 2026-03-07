@@ -45,8 +45,11 @@ func (v *VolumeLcdHandler) Start(knob api.KnobConfigV3, info api.StreamDeckInfoV
 	}
 	devType, ok := knob.LcdHandlerFields["device_type"]
 	if !ok {
-		log.Println("Device type missing")
-		return
+		devType, ok = knob.SharedHandlerFields["device_type"]
+		if !ok {
+			log.Println("Device type missing")
+			return
+		}
 	}
 	if devType == "sink_input" || devType == "source_output" {
 		var inputName string
@@ -185,7 +188,10 @@ func update(v *VolumeLcdHandler, info api.StreamDeckInfoV1, callback func(image 
 		} else if v.DevType == "source_output" {
 			text = "Could not find source output"
 		}
-		imgParsed, err2 := api.DrawText(img, text, 24, "MIDDLE")
+		imgParsed, err2 := api.DrawText(img, text, api.DrawTextOptions{
+			FontSize:          24,
+			VerticalAlignment: api.Center,
+		})
 		if err2 != nil {
 			log.Println(err2)
 		} else {
@@ -215,7 +221,10 @@ func update(v *VolumeLcdHandler, info api.StreamDeckInfoV1, callback func(image 
 		if img == nil {
 			image.NewNRGBA(image.Rect(0, 0, info.LcdWidth, info.LcdHeight))
 		}
-		imgParsed, err := api.DrawText(img, text, 24, "BOTTOM")
+		imgParsed, err := api.DrawText(img, text, api.DrawTextOptions{
+			VerticalAlignment: api.Bottom,
+			FontSize:          24,
+		})
 		if err != nil {
 			log.Println(err)
 		} else {
@@ -232,8 +241,11 @@ type VolumeKnobOrTouchHandler struct {
 func (v *VolumeKnobOrTouchHandler) Input(knob api.KnobConfigV3, info api.StreamDeckInfoV1, event api.InputEvent) {
 	dev, ok := knob.KnobOrTouchHandlerFields["device_type"]
 	if !ok {
-		log.Println("Device type missing")
-		return
+		dev, ok = knob.SharedHandlerFields["device_type"]
+		if !ok {
+			log.Println("Device type missing")
+			return
+		}
 	}
 	var err error
 	if dev == "sink_input" || dev == "source_output" {
@@ -402,7 +414,13 @@ func GetModule() api.Module {
 			}
 			return &VolumeLcdHandler{Running: true, Lock: semaphore.NewWeighted(1), FirstLoop: true, client: client}
 		},
-		LcdFields: []api.Field{{Title: "Unmuted Icon", Name: "unmute_icon", Type: "File", FileTypes: []string{".png", ".jpg", ".jpeg"}}, {Title: "Muted Icon", Name: "mute_icon", Type: "File"}, {Title: "Device Type", Name: "device_type", Type: "Text"}, {Title: "Input Name", Name: "input_name", Type: "Text"}, {Title: "Props", Name: "props", Type: "Text"}},
+		LcdFields: []api.Field{
+			{Title: "Unmuted Icon", Name: "unmute_icon", Type: api.File, FileTypes: []string{".png", ".jpg", ".jpeg"}},
+			{Title: "Muted Icon", Name: "mute_icon", Type: api.File},
+			{Title: "Device Type", Name: "device_type", Type: api.Text},
+			{Title: "Input Name", Name: "input_name", Type: api.Text},
+			{Title: "Props", Name: "props", Type: api.Text},
+		},
 		NewKnobOrTouch: func() api.KnobOrTouchHandler {
 			client, err := pulseaudio.NewClient()
 			if err != nil {
@@ -410,7 +428,11 @@ func GetModule() api.Module {
 			}
 			return &VolumeKnobOrTouchHandler{client: client}
 		},
-		KnobOrTouchFields: []api.Field{{Title: "Device Type", Name: "device_type", Type: "Text"}, {Title: "Input Name", Name: "input_name", Type: "Text"}, {Title: "Props", Name: "props", Type: "Text"}},
+		KnobOrTouchFields: []api.Field{
+			{Title: "Device Type", Name: "device_type", Type: api.Text},
+			{Title: "Input Name", Name: "input_name", Type: api.Text},
+			{Title: "Props", Name: "props", Type: api.Text},
+		},
 		NewKey: func() api.KeyHandler {
 			client, err := pulseaudio.NewClient()
 			if err != nil {
@@ -418,7 +440,11 @@ func GetModule() api.Module {
 			}
 			return &VolumeKeyHandler{client: client}
 		},
-		KeyFields: []api.Field{{Title: "Device Type", Name: "device_type", Type: "Text"}, {Title: "Input Name", Name: "input_name", Type: "Text"}, {Title: "Props", Name: "props", Type: "Text"}},
+		KeyFields: []api.Field{
+			{Title: "Device Type", Name: "device_type", Type: api.Text},
+			{Title: "Input Name", Name: "input_name", Type: api.Text},
+			{Title: "Props", Name: "props", Type: api.Text},
+		},
 
 		Name: "Volume",
 	}

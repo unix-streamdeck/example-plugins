@@ -1,18 +1,8 @@
-# Stream Deck API for Unix
+# StreamDeck API for Unix
 
-This is a Go library for the streamdeckd daemon, not a standalone application. It provides interfaces for connecting to the daemon, accessing configuration objects, and creating custom handlers or GUI config editors for Elgato Stream Deck devices on Unix systems.
+This is a Go library for the streamdeckd daemon, not a standalone application. It provides interfaces for connecting to the daemon, accessing configuration objects, and creating custom handlers or GUI config editors for Elgato StreamDeck devices on Unix systems.
 
-The library enables handling Stream Deck inputs (buttons, knobs, touch), managing icons and images, and communicating with the Stream Deck daemon via DBus.
-
-## Features
-
-- Connect to Stream Deck devices through the streamdeckd daemon
-- Handle button presses, knob rotations, and touch inputs
-- Create and manipulate images for Stream Deck displays
-- Manage device configurations and pages
-- Draw text on Stream Deck buttons with customizable fonts and alignments
-- Resize images to fit Stream Deck displays
-- OBS integration support
+The library exposes an API for creating custom plugins to handle Stream Deck inputs (buttons, knobs, touch), managing icons and images, and also for communicating with the streamdeckd daemon via DBus.
 
 ## Installation
 
@@ -25,7 +15,10 @@ go get github.com/unix-streamdeck/api
 ### Connecting to the Stream Deck daemon
 
 ```go
-import "github.com/unix-streamdeck/api"
+import (
+    "fmt"
+    "github.com/unix-streamdeck/api"
+)
 
 // Connect to the Stream Deck daemon
 conn, err := api.Connect()
@@ -39,6 +32,11 @@ devices, err := conn.GetInfo()
 if err != nil {
     // Handle error
 }
+
+// Listen for page changes
+err = conn.RegisterPageListener(func(serial string, page int32) {
+    fmt.Printf("Device %s changed to page %d\n", serial, page)
+})
 ```
 
 ### Working with images
@@ -47,7 +45,7 @@ if err != nil {
 import (
     "github.com/unix-streamdeck/api"
     "image"
-    _ "image/png" // Import for PNG support
+    _ "image/png"
     "os"
 )
 
@@ -55,8 +53,11 @@ import (
 file, _ := os.Open("icon.png")
 img, _, _ := image.Decode(file)
 
-// Resize image to fit a Stream Deck key
+// Resize image to fit a Stream Deck key, ideally pass the `IconSize` field from `StreamDeckInfoV1` rather than magic num,ber
 resizedImg := api.ResizeImage(img, 72) // 72x72 pixels
+
+// Resize image with specific width and height (e.g., for LCD display) (`LcdWidth` and `LcdHeight` in `StreamDeckInfoV1`)
+resizedLcdImg := api.ResizeImageWH(img, 800, 100)
 
 // Add text to an image
 imgWithText, _ := api.DrawText(resizedImg, "Hello", 0, "CENTER")
@@ -93,7 +94,43 @@ func (h *MyIconHandler) SetRunning(running bool) {
 
 func (h *MyIconHandler) Stop() {
     h.running = false
-    // Clean up resources
+    // Clean up resources and stop calling callback
+}
+
+// Implement an LCD handler (for Stream Deck Plus)
+type MyLcdHandler struct {
+    running bool
+}
+
+func (h *MyLcdHandler) Start(knob api.KnobConfigV3, info api.StreamDeckInfoV1, callback func(image image.Image)) {
+    h.running = true
+    // Generate and update LCD image
+}
+
+func (h *MyLcdHandler) IsRunning() bool {
+    return h.running
+}
+
+func (h *MyLcdHandler) SetRunning(running bool) {
+    h.running = running
+}
+
+func (h *MyLcdHandler) Stop() {
+    h.running = false
+}
+
+// Implement a knob or touch handler (for Stream Deck Plus)
+type MyKnobHandler struct{}
+
+func (h *MyKnobHandler) Input(knob api.KnobConfigV3, info api.StreamDeckInfoV1, event api.InputEvent) {
+    switch event.EventType {
+    case api.KNOB_CW:
+        // Handle clockwise rotation
+    case api.KNOB_CCW:
+        // Handle counter-clockwise rotation
+    case api.KNOB_PRESS:
+        // Handle knob press
+    }
 }
 ```
 
@@ -104,8 +141,8 @@ The API provides several interfaces for handling Stream Deck interactions:
 - `Handler`: Base interface for all handlers
 - `IconHandler`: For handling dynamic icons/images
 - `KeyHandler`: For handling key press events
-- `LcdHandler`: For handling LCD displays
-- `KnobOrTouchHandler`: For handling knob rotations and touch events
+- `LcdHandler`: For handling LCD displays (Stream Deck Plus)
+- `KnobOrTouchHandler`: For handling knob rotations and touch events (Stream Deck Plus)
 
 Key components:
 
@@ -133,34 +170,15 @@ if err != nil {
     // Handle error
 }
 
-// Reload configuration from disk
-err = conn.ReloadConfig()
 
 // Commit configuration changes to disk
 err = conn.CommitConfig()
+
+// Or Reload configuration from disk if the changes weren't correct
+err = conn.ReloadConfig()
+
 ```
 
-### Custom GUI Config Editors
-
-The library provides the `Module` and `Field` types that can be used to create custom GUI configuration editors:
-
-```go
-// Get available modules
-modules, err := conn.GetModules()
-if err != nil {
-    // Handle error
-}
-
-// Get OBS-specific fields
-obsFields, err := conn.GetObsFields()
-if err != nil {
-    // Handle error
-}
-```
-
-## Help Wanted!
-
-If you want to help with the development of streamdeckd and its related repos, either by submitting code, finding/fixing bugs, or just replying to issues, please join this discord server: https://discord.gg/nyhuVEJWMQ
 
 ## License
 

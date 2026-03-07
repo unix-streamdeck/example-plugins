@@ -89,9 +89,11 @@ func (CCTVKeyHandler) Key(key api.KeyConfigV3, info api.StreamDeckInfoV1) {
 func GetModule() api.Module {
 
 	return api.Module{
-		Name:       "CCTV",
-		NewIcon:    func() api.IconHandler { return &CCTVIconHandler{Running: true, Lock: semaphore.NewWeighted(1)} },
-		IconFields: []api.Field{{Title: "URL", Name: "url", Type: "Text"}},
+		Name:    "CCTV",
+		NewIcon: func() api.IconHandler { return &CCTVIconHandler{Running: true, Lock: semaphore.NewWeighted(1)} },
+		IconFields: []api.Field{
+			{Title: "URL", Name: "url", Type: api.Text},
+		},
 	}
 }
 

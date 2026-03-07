@@ -159,8 +159,15 @@ func GetModule() api.Module {
 		NewIcon: func() api.IconHandler {
 			return &ToggleIconHandler{Running: true, Lock: semaphore.NewWeighted(1), FirstLoop: true}
 		},
-		NewKey:     func() api.KeyHandler { return &ToggleKeyHandler{} },
-		IconFields: []api.Field{{Title: "Up Icon", Name: "up_icon", Type: "File", FileTypes: []string{".png", ".jpg", ".jpeg"}}, {Title: "Down Icon", Name: "down_icon", Type: "File", FileTypes: []string{".png", ".jpg", ".jpeg"}}, {Title: "Check Command", Name: "check_command", Type: "Text"}},
-		KeyFields:  []api.Field{{Title: "Up Command", Name: "up_command", Type: "Text"}, {Title: "Down Command", Name: "down_command", Type: "Text"}},
+		NewKey: func() api.KeyHandler { return &ToggleKeyHandler{} },
+		IconFields: []api.Field{
+			{Title: "Up Icon", Name: "up_icon", Type: api.File, FileTypes: []string{".png", ".jpg", ".jpeg"}},
+			{Title: "Down Icon", Name: "down_icon", Type: api.File, FileTypes: []string{".png", ".jpg", ".jpeg"}},
+			{Title: "Check Command", Name: "check_command", Type: api.Text},
+		},
+		KeyFields: []api.Field{
+			{Title: "Up Command", Name: "up_command", Type: api.Text},
+			{Title: "Down Command", Name: "down_command", Type: api.Text},
+		},
 	}
 }
